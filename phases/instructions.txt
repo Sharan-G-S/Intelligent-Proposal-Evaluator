@@ -1,0 +1,2 @@
+install ollama model
+    ollama pull llama3:8b  or tinyllama
