@@ -1,21 +1,20 @@
 # financial_rules.yaml
 # A machine-readable version of the Ministry of Coal S&T funding guidelines.
-# Rules extracted from S&T-Guidelines-MoC.pdf provided.
 
 # --- General Project Constraints ---
 # Source: Section 5.0, Page 6
-[cite_start]max_project_duration_years: 3 # [cite: 281]
-[cite_start]standard_project_duration_years: 2 # [cite: 280]
+max_project_duration_years: 3
+standard_project_duration_years: 2
 
 # --- Specific Cost Ceilings (in INR) ---
 # Source: Section 6.0, Page 8
-[cite_start]seminar_workshop_limit_inr: 50000 # [cite: 339]
-[cite_start]travel_ta_da_limit_inr: 300000 # [cite: 345, 346]
+seminar_workshop_limit_inr: 50000
+travel_ta_da_limit_inr: 300000
 
 # --- Cost Category Percentage Limits ---
 # Source: Section 6.0, Page 8 & Section 4.13, Page 21
 cost_limits_percent:
-  # [cite_start]Contingency is limited to 5% of the total REVENUE cost. [cite: 343, 697]
+  # Contingency is limited to 5% of the total REVENUE cost.
   contingency_of_revenue: 5
 
 # --- Institutional Overhead Costs (Tiered System) ---
@@ -23,31 +22,42 @@ cost_limits_percent:
 # This is a complex, tiered rule. The engine will need to handle this logic.
 institutional_overhead_rules:
   - max_project_cost_inr: 10000000 # Upto 1 Crore
-    # 10% for educational institutions, 8% for govt labs. [cite_start]We'll use 10 as the default check. [cite: 700]
+    # 10% for educational institutions, 8% for govt labs. We'll use 10 as the default check.
     percent_limit: 10
   - max_project_cost_inr: 50000000 # Upto 5 Crores
-    # [cite_start]Whichever is less: 15 Lakhs or 10%. [cite: 701, 702]
+    # Whichever is less: 15 Lakhs or 10%.
     amount_limit_inr: 1500000
     percent_limit: 10
   - max_project_cost_inr: 200000000 # Upto 20 Crores
-    # [cite_start]Maximum of 20 Lakhs. [cite: 703, 704]
+    # Maximum of 20 Lakhs.
     amount_limit_inr: 2000000
   - min_project_cost_inr: 200000000 # More than 20 Crores
-    # Decided on a case-by-case basis. [cite_start]Our engine can flag this for manual review. [cite: 705]
+    # Decided on a case-by-case basis. Our engine can flag this for manual review.
     action: "manual_review"
 
 # --- Disallowed Items ---
 # Source: Section 7.0, Page 9
 # A list of expenses that are generally forbidden.
 disallowed_items:
-  - [cite_start]"Land" # [cite: 362]
-  - [cite_start]"Building" # [cite: 362]
-  - [cite_start]"Furniture and fittings" # [cite: 362]
-  - [cite_start]"Calculators" # [cite: 362]
-  - [cite_start]"Computers" # [cite: 362]
-  - [cite_start]"Salaries of permanent employees" # [cite: 363]
-  - [cite_start]"Honorarium to persons who are already in the employment" # [cite: 364]
-  - [cite_start]"Foreign travel" # [cite: 366]
-  - [cite_start]"Engaging / inviting foreign experts" # [cite: 368]
-  - [cite_start]"Purchase of staff car" # [cite: 370]
-  - [cite_start]"Employment of peons, khalasis, laboratory attendants, stenographers, typists" # [cite: 372]
+  - "Land"
+  - "Building"
+  - "Furniture and fittings"
+  - "Calculators"
+  - "Computers"
+  - "Salaries of permanent employees"
+  - "Honorarium to persons who are already in the employment"
+  - "Foreign travel"
+  - "Engaging / inviting foreign experts"
+  - "Purchase of staff car"
+  - "Employment of peons, khalasis, laboratory attendants, stenographers, typists"
+# financial_rules.yaml
+# ... (keep all the existing rules above this) ...
+
+# --- Synonyms for Normalization ---
+# Maps common terms found in proposals to the official rule term.
+normalization_map:
+  "International Travel": "Foreign travel"
+  "Overseas Travel": "Foreign travel"
+  "Car Purchase": "Purchase of staff car"
+  "Building Renovation": "Building Construction"
+  "Computer": "Computers" # Singular to Plural
