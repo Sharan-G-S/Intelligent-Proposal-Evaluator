@@ -87,6 +87,7 @@ if __name__ == '__main__':
     # First, ensure the knowledge base is embedded in the DB
     embed_knowledge_base()
     print(f"\nTotal items in collection: {collection.count()}")
+    print("\nLow novelty score means Red flag (similar to existing projects).")
     
     # Now, test the novelty calculation with a sample text.
     # This text is intentionally similar to MOC_01 to test the search.
