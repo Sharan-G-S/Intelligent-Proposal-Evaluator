@@ -10,78 +10,90 @@ DB_PATH = "vector_db"
 client = chromadb.PersistentClient(path=DB_PATH)
 
 # --- AI Model Setup ---
-# We will use a powerful and efficient model from Hugging Face.
-# The first time this script runs, it will download the model (might take a minute).
 embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
-
-# Get or create the collection.
 collection = client.get_or_create_collection(name="proposals")
 
 
 def embed_knowledge_base():
     """
-    Loads the knowledge base, creates embeddings for each project's text,
-    and stores them in the ChromaDB collection.
+    Loads the knowledge base and stores project embeddings in ChromaDB.
     """
-    print("--- Starting Knowledge Base Embedding Process ---")
-    
-    # Check if the collection is already populated to avoid re-embedding.
     if collection.count() > 0:
-        print("Collection is already populated. Skipping embedding process.")
+        print("Knowledge base is already embedded.")
         return
-
-    # Load our processed data
+    
     try:
         with open('data/processed/knowledge_base.json', 'r', encoding='utf-8') as f:
             knowledge_base = json.load(f)
-        print(f"Loaded {len(knowledge_base)} projects from knowledge_base.json")
     except FileNotFoundError:
-        print("Error: knowledge_base.json not found. Please run the processing script from Phase 0.")
+        print("Error: knowledge_base.json not found.")
         return
 
-    # Prepare data for ChromaDB
-    documents_to_embed = []
-    metadatas_to_store = []
-    ids_to_store = []
-
-    for project in knowledge_base:
-        # The text that will be converted into a vector
-        documents_to_embed.append(project['full_text'])
-        
-        # Additional data we want to store alongside the vector
-        metadatas_to_store.append({
-            "title": project['project_title'],
-            "agency": project['implementing_agency'],
-            "year": project['year']
-        })
-        
-        # A unique ID for each entry
-        ids_to_store.append(project['project_id'])
-
-    print(f"Preparing to embed {len(documents_to_embed)} documents...")
-
-    # Create embeddings for all documents at once (this is very efficient)
+    documents_to_embed = [project['full_text'] for project in knowledge_base]
+    metadatas_to_store = [{"title": p['project_title']} for p in knowledge_base]
+    ids_to_store = [project['project_id'] for project in knowledge_base]
+    
     embeddings = embedding_model.encode(documents_to_embed).tolist()
-    print("Embeddings created successfully.")
-
-    # Add the data to the ChromaDB collection
+    
     collection.add(
         embeddings=embeddings,
         documents=documents_to_embed,
         metadatas=metadatas_to_store,
         ids=ids_to_store
     )
-    print("Successfully added all projects to the vector database.")
+    print("Successfully embedded and stored the knowledge base.")
 
 
-# --- Main block to run the embedding process ---
-if __name__ == '__main__':
-    embed_knowledge_base()
+def calculate_novelty(new_proposal_text: str, n_results: int = 3) -> dict:
+    """
+    Calculates the novelty of a new proposal by comparing it against the knowledge base.
+    """
+    print(f"\n--- Calculating Novelty for New Proposal ---")
     
-    print("\n--- Verification ---")
-    count = collection.count()
-    print(f"Current number of items in collection: {count}")
-    if count == 11:
-        print("Verification successful: All 11 projects are in the database.")
-    else:
-        print("Verification failed: The number of items is not 11.")
+    # Step 1: Create an embedding for the new text
+    new_embedding = embedding_model.encode(new_proposal_text).tolist()
+    
+    # Step 2: Query the collection to find the 'n' most similar results
+    results = collection.query(
+        query_embeddings=[new_embedding],
+        n_results=n_results
+    )
+    
+    # Step 3: Extract the distances and metadata
+    # ChromaDB's distance is L2 squared. Lower distance = more similar.
+    distances = results['distances'][0]
+    metadatas = results['metadatas'][0]
+    ids = results['ids'][0]
+    
+    # Step 4: Calculate a novelty score. We'll define novelty as the distance
+    # to the single closest match. A higher score means more novel.
+    # We round it for readability.
+    novelty_score = round(distances[0], 4) if distances else -1
+
+    print(f"Novelty Score (distance to closest match): {novelty_score}")
+    print("Most similar projects found:")
+    for i in range(len(ids)):
+        print(f"  - ID: {ids[i]}, Title: \"{metadatas[i]['title']}\", Distance: {round(distances[i], 4)}")
+        
+    return {
+        "novelty_score": novelty_score,
+        "similar_projects": [
+            {"id": ids[i], "title": metadatas[i]['title'], "distance": distances[i]} for i in range(len(ids))
+        ]
+    }
+
+# --- Main block to run the full process ---
+if __name__ == '__main__':
+    # First, ensure the knowledge base is embedded in the DB
+    embed_knowledge_base()
+    print(f"\nTotal items in collection: {collection.count()}")
+    
+    # Now, test the novelty calculation with a sample text.
+    # This text is intentionally similar to MOC_01 to test the search.
+    sample_text = """
+    This research proposes the development of an intelligent shovel bucket for use in mining.
+    By using sensors, data analytics, and machine learning, we aim to improve the efficiency
+    and safety of excavation. The smart bucket will monitor digging forces and wear in real-time.
+    """
+    
+    novelty_results = calculate_novelty(sample_text)
