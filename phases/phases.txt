@@ -1,0 +1,193 @@
+Phase 0: Foundation & Data Preparation
+This initial phase is the most critical. Its goal is to set up the project environment and prepare the raw data, which is essential for all subsequent AI/ML modules. This directly addresses the challenge of 
+
+digitizing past projects.
+
+
+Step 0.1: Project Setup & Scaffolding
+
+Initialize a Git repository.
+
+Set up a virtual environment (e.g., Conda, venv).
+
+Install core libraries (e.g., Python, Flask/FastAPI, PyTorch/TensorFlow).
+
+Establish a clear folder structure (e.g., /data, /src, /notebooks, /models).
+
+Step 0.2: Data Sourcing & Collection
+
+Gather all available 
+
+NaCCER/CMPDIL evaluation guidelines and MoC S&T funding rules.
+
+Collect a representative set of past R&D proposals (both accepted and rejected, if possible).
+
+Acquire the database of past and ongoing projects, even if it's in Word/Excel format.
+
+Step 0.3: Data Digitization & Annotation
+
+Convert all scanned documents and PDFs into machine-readable text using OCR scripts.
+
+Manually structure and clean the extracted data from past projects into a consistent format (e.g., JSON or CSV with fields like title, abstract, team, budget, status). This will become our core knowledge base.
+
+## Phase 1: Proposal Ingestion & Processing Engine
+The goal here is to build a reliable pipeline that takes a raw proposal file (PDF/DOC) and converts it into structured, usable data for the other modules.
+
+Step 1.1: Document Parser Development
+
+Build a robust file upload and parsing module that can handle 
+
+.pdf and .doc files.
+
+
+Step 1.2: Text & Data Extraction
+
+Implement 
+
+OCR and NLP techniques to accurately extract text, tables (especially financial ones), and key sections from the parsed documents.
+
+
+
+
+
+Step 1.3: Data Structuring
+
+Create a process to map the extracted raw text to a standardized JSON object. This object will represent a single proposal and will be the input for all other AI engines.
+
+## Phase 2: Novelty Analysis Engine
+This phase focuses on one of the core features: automatically scoring a proposal's novelty by comparing it against historical data.
+
+Step 2.1: Vector Database Setup
+
+Deploy a 
+
+Vector Database (e.g., ChromaDB, Milvus, Pinecone) to store the embeddings of past projects.
+
+
+
+
+
+Step 2.2: Knowledge Base Embedding
+
+Use a pre-trained model like 
+
+BERT or SciBERT to convert the text from all digitized past projects (from Phase 0) into numerical vectors (embeddings) and load them into the Vector DB.
+
+
+
+
+
+Step 2.3: Semantic Search Implementation
+
+Develop the function that takes a new proposal's text, converts it into an embedding, and performs a semantic search against the Vector DB to find the most similar past projects.
+
+Step 2.4: Novelty Scoring Algorithm
+
+Define and implement a scoring logic based on the similarity scores from the search results. A lower similarity to existing projects should result in a higher novelty score.
+
+## Phase 3: Financial Compliance Engine
+Here, we'll automate the tedious task of checking a proposal's budget against official guidelines.
+
+Step 3.1: Rule Digitization
+
+Translate the MoC S&T funding guidelines  into a set of machine-readable rules (e.g., in a JSON, YAML, or dedicated rule engine format).
+
+Step 3.2: Rule Engine Implementation
+
+Build or integrate a 
+
+Rule Engine that takes the extracted financial data from a proposal and validates it against the digitized rules.
+
+
+Step 3.3: Compliance Report Generation
+
+The engine should output a simple report indicating pass/fail and highlighting any specific budget lines that violate the guidelines.
+
+
+## Phase 4: Feasibility & Risk Scoring Engine
+This phase involves using machine learning to predict the potential success or failure of a proposed project.
+
+Step 4.1: Feature Engineering & Dataset Creation
+
+Using the digitized historical data, identify features that correlate with project success (e.g., team experience, methodology clarity, budget allocation). Create a labeled dataset for training.
+
+Step 4.2: ML Model Training
+
+Train 
+
+ML models to predict a feasibility and/or risk score based on the engineered features. Start with simpler models like Logistic Regression or Gradient Boosting.
+
+
+
+
+Step 4.3: Model Serving
+
+Save the trained model and create an API endpoint that can take a new proposal's features and return a score.
+
+## Phase 5: Conversational AI Reviewer (RAG)
+This is the innovative heart of your solution. The goal is to allow reviewers to "talk" to the proposal document.
+
+Step 5.1: RAG Pipeline Setup
+
+Implement a 
+
+Retrieval-Augmented Generation (RAG) pipeline. This involves setting up a framework like LangChain or LlamaIndex.
+
+
+
+
+
+Step 5.2: Document-Specific Indexing
+
+When a proposal is uploaded, its text should be chunked and indexed temporarily for the RAG system to query. This ensures the AI answers questions based only on that specific document.
+
+Step 5.3: Prompt Engineering & LLM Integration
+
+Integrate a 
+
+fine-tuned LLM and craft system prompts that instruct it to act as a helpful reviewer's assistant, answering questions strictly based on the retrieved context from the document.
+
+
+
+## Phase 6: Integration & Dashboard Development
+This phase brings all the individual modules together into a single, cohesive application for the end-user.
+
+Step 6.1: Backend API Development
+
+Create a main API that orchestrates the entire workflow: it receives a proposal, sends it to the Ingestion engine, then passes the structured output to the Novelty, Financial, and Risk engines in parallel.
+
+Step 6.2: Frontend UI/UX Design
+
+Design the 
+
+Reviewer Dashboard. It should clearly display the novelty score, financial compliance report, risk score, and other key metrics.
+
+Step 6.3: Frontend Implementation
+
+Build the dashboard interface, including the 
+
+interactive Q&A chat interface for the Conversational AI.
+
+Step 6.4: Human-in-the-Loop (HIPL) Implementation
+
+Add functionality to the dashboard that allows a human reviewer to view, approve, or override the AI-generated scores and reports, ensuring reliability.
+
+
+## Phase 7: Finalization & Deployment
+The final phase involves testing the complete system, preparing it for submission, and deploying it.
+
+Step 7.1: End-to-End Testing
+
+Thoroughly test the entire workflow, from file upload to final report generation.
+
+Conduct User Acceptance Testing (UAT) to get feedback on the dashboard's usability.
+
+Step 7.2: Deployment
+
+Package the application (e.g., using Docker) for easy deployment.
+
+Deploy the application to a cloud service.
+
+Step 7.3: Documentation & Submission
+
+Prepare the final presentation, video, and source code for SIH submission.
