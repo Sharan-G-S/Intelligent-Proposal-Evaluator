@@ -33,15 +33,28 @@ def embed_knowledge_base():
     print("Successfully embedded and stored the knowledge base.")
 
 
-def calculate_novelty(new_proposal_text: str, n_results: int = 3) -> dict:
-    # ... (This function remains the same) ...
+# src/models/novelty_analyzer.py
+
+def calculate_novelty(new_proposal_text: str, embedding_model, collection, n_results: int = 3) -> dict:
+    """
+    Calculates novelty by receiving a pre-loaded model and db collection.
+    """
     new_embedding = embedding_model.encode(new_proposal_text).tolist()
-    results = collection.query(query_embeddings=[new_embedding], n_results=n_results)
+    
+    results = collection.query(
+        query_embeddings=[new_embedding],
+        n_results=n_results
+    )
+    
     distances = results['distances'][0]
     metadatas = results['metadatas'][0]
     ids = results['ids'][0]
+    
     novelty_score = round(distances[0], 4) if distances else -1
+
     return {
         "novelty_score": novelty_score,
-        "similar_projects": [{"id": ids[i], "title": metadatas[i]['title'], "distance": distances[i]} for i in range(len(ids))]
+        "similar_projects": [
+            {"id": ids[i], "title": metadatas[i]['title'], "distance": distances[i]} for i in range(len(ids))
+        ]
     }

@@ -1,4 +1,4 @@
-# src/models/risk_analyzer.py
+# train_model.py
 
 import json
 import pandas as pd
@@ -49,9 +49,8 @@ def train_and_save_model(X, y, vectorizer, model_dir="trained_models"):
     accuracy = accuracy_score(y_test, y_pred)
     print(f"Model Accuracy on Test Set: {accuracy * 100:.2f}%")
     
-    # --- Save the model and vectorizer ---
     print("\n--- Saving Model and Vectorizer ---")
-    os.makedirs(model_dir, exist_ok=True) # Ensure the directory exists
+    os.makedirs(model_dir, exist_ok=True)
     
     model_path = os.path.join(model_dir, "risk_model.joblib")
     vectorizer_path = os.path.join(model_dir, "tfidf_vectorizer.joblib")
