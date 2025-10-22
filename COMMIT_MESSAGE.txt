@@ -1,0 +1,33 @@
+🚀 Initial Commit - AI R&D Proposal Evaluator | Team Zenith 07
+
+Smart India Hackathon 2025 - Problem Statement #25180
+
+## Features Implemented
+✅ AI-powered proposal evaluation system
+✅ Multi-criteria analysis (Novelty, Financial, Risk)
+✅ Interactive web interface with real-time processing
+✅ Batch processing for multiple proposals
+✅ Comprehensive documentation and deployment guides
+
+## Technology Stack
+- Backend: FastAPI, Python 3.12
+- ML/NLP: scikit-learn, SentenceTransformers, ChromaDB
+- Frontend: HTML5, CSS3, JavaScript
+- Document Processing: PyMuPDF, python-docx
+
+## Quick Start
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python3 simple_server.py
+```
+
+Access at: http://localhost:8000
+
+## Team
+Team Zenith 07
+SIH 2025
+
+---
+Built with ❤️ for Smart India Hackathon 2025

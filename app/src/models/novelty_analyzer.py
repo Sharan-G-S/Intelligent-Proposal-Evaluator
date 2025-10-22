@@ -38,6 +38,7 @@ def embed_knowledge_base():
 def calculate_novelty(new_proposal_text: str, embedding_model, collection, n_results: int = 3) -> dict:
     """
     Calculates novelty by receiving a pre-loaded model and db collection.
+    Returns maximum similarity percentage - higher similarity = red flag, lower = unique
     """
     new_embedding = embedding_model.encode(new_proposal_text).tolist()
     
@@ -50,11 +51,27 @@ def calculate_novelty(new_proposal_text: str, embedding_model, collection, n_res
     metadatas = results['metadatas'][0]
     ids = results['ids'][0]
     
-    novelty_score = round(distances[0], 4) if distances else -1
-
+    # Convert distance to similarity percentage (lower distance = higher similarity)
+    # Distance 0 = 100% similarity, Distance 1 = 0% similarity
+    max_similarity = max(0, min(95, int((1 - distances[0]) * 100))) if distances else 50
+    
+    # Determine novelty status
+    if max_similarity >= 70:
+        novelty_status = "RED FLAG"
+        novelty_passed = False
+    elif max_similarity >= 50:
+        novelty_status = "CAUTION"
+        novelty_passed = True
+    else:
+        novelty_status = "UNIQUE"
+        novelty_passed = True
+    
     return {
-        "novelty_score": novelty_score,
+        "novelty_score": distances[0] if distances else 0.5,  # Keep original for compatibility
+        "max_similarity_percentage": max_similarity,  # Maximum similarity found
+        "novelty_status": novelty_status,
+        "novelty_passed": novelty_passed,
         "similar_projects": [
-            {"id": ids[i], "title": metadatas[i]['title'], "distance": distances[i]} for i in range(len(ids))
+            {"id": ids[i], "title": metadatas[i]['title'], "similarity": int((1 - distances[i]) * 100)} for i in range(len(ids))
         ]
     }

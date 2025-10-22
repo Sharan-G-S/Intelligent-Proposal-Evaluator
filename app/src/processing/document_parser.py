@@ -33,6 +33,17 @@ def extract_text_from_docx(file_path: str) -> str:
         print(f"Error reading DOCX {file_path}: {e}")
         return ""
 
+def extract_text_from_txt(file_path: str) -> str:
+    """Extracts all text from a given TXT file."""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            text = f.read()
+        print(f"Successfully extracted text from TXT: {os.path.basename(file_path)}")
+        return text
+    except Exception as e:
+        print(f"Error reading TXT {file_path}: {e}")
+        return ""
+
 def extract_sections(text: str) -> dict:
     """
     Extracts structured sections from raw text based on common headers using a more flexible regex.
@@ -67,7 +78,7 @@ def extract_sections(text: str) -> dict:
 
 def parse_document(file_path: str) -> str:
     """
-    Parses a document (PDF or DOCX) and returns its text content.
+    Parses a document (PDF, DOCX, or TXT) and returns its text content.
     """
     file_extension = os.path.splitext(file_path)[1].lower()
 
@@ -75,8 +86,10 @@ def parse_document(file_path: str) -> str:
         return extract_text_from_pdf(file_path)
     elif file_extension == '.docx':
         return extract_text_from_docx(file_path)
+    elif file_extension == '.txt':
+        return extract_text_from_txt(file_path)
     else:
-        print(f"Unsupported file type: {file_extension}.")
+        print(f"Unsupported file type: {file_extension}. Supported types: .pdf, .docx, .txt")
         return ""
 
 def process_new_proposal(file_path: str) -> dict:

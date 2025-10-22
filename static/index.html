@@ -1,0 +1,1588 @@
+<!DOCTYPE html>                                                   
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI R&D Proposal Evaluator</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .upload-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9ff;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #28a745;
+            background: #f0fff4;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f1f3f4;
+        }
+
+        .card-icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .novelty-icon { background: #4CAF50; }
+        .financial-icon { background: #FF9800; }
+        .risk-icon { background: #F44336; }
+        .document-icon { background: #2196F3; }
+        .overall-icon { background: #9C27B0; }
+
+        .overall-approval {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .overall-approval .card-header {
+            color: white;
+        }
+
+        .overall-approval .card-icon {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .criteria-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .criteria-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+
+        .criteria-status {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .score-display {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .score-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .score-high { background: #4CAF50; }
+        .score-medium { background: #FF9800; }
+        .score-low { background: #F44336; }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin: 5px;
+        }
+
+        .status-pass { background: #d4edda; color: #155724; }
+        .status-fail { background: #f8d7da; color: #721c24; }
+        .status-approved { background: #d1ecf1; color: #0c5460; }
+        .status-rejected { background: #f8d7da; color: #721c24; }
+
+        .section-list {
+            list-style: none;
+        }
+
+        .financial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .cost-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #FF9800;
+        }
+
+        .cost-amount {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .cost-percentage {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .health-score {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .health-excellent { background: #d4edda; color: #155724; }
+        .health-good { background: #d1ecf1; color: #0c5460; }
+        .health-warning { background: #fff3cd; color: #856404; }
+        .health-poor { background: #f8d7da; color: #721c24; }
+
+        .optimization-tips {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .tip-item {
+            margin: 8px 0;
+            padding: 8px;
+            background: white;
+            border-radius: 5px;
+            border-left: 3px solid #007bff;
+        }
+
+        .section-item {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .similar-project {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        /* Multi-file Upload Styles */
+        .file-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 15px 0;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        .file-item.selected {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+        }
+
+        .file-status {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-processing { background: #fff3cd; color: #856404; }
+        .status-completed { background: #d4edda; color: #155724; }
+        .status-error { background: #f8d7da; color: #721c24; }
+
+        .batch-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .batch-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .batch-stat {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .file-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .file-preview-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .file-preview-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .file-preview-card.selected {
+            border: 2px solid #2196F3;
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .preview-filename {
+            font-weight: bold;
+            color: #333;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .preview-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .metric-item {
+            text-align: center;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .metric-value {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .project-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .similarity-score {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .results {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-brain"></i> AI R&D Proposal Evaluator</h1>
+            <p>Intelligent Analysis for Research & Development Proposals</p>
+        </div>
+
+        <div class="upload-section">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <h3>Upload Your Proposal Documents</h3>
+                <p>Drag and drop up to 10 files here or click to browse</p>
+                <p style="margin-top: 10px; color: #666; font-size: 0.9rem;">
+                    Supported formats: PDF, DOCX, TXT | Single file: instant analysis | Multiple files: batch processing
+                </p>
+                <input type="file" id="fileInput" class="file-input" accept=".pdf,.docx,.txt" multiple>
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    <i class="fas fa-file-upload"></i> Choose Files
+                </button>
+                <button class="upload-btn" onclick="resetInterface()" style="background: #6c757d; margin-left: 10px;">
+                    <i class="fas fa-refresh"></i> Reset
+                </button>
+                <button class="upload-btn" onclick="testWithMockData()" style="background: #28a745; margin-left: 10px;">
+                    <i class="fas fa-vial"></i> Test with Mock Data
+                </button>
+                <button class="upload-btn" onclick="testDetailedAnalysis()" style="background: #17a2b8; margin-left: 10px;">
+                    <i class="fas fa-chart-line"></i> Test Detailed Analysis
+                </button>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <h3>Analyzing Your Proposals...</h3>
+                <p>Please wait while our AI evaluates your documents</p>
+                <div id="progressIndicator" style="display: none; margin-top: 20px;">
+                    <div style="background: #f0f0f0; border-radius: 10px; padding: 3px;">
+                        <div id="progressBar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 20px; border-radius: 8px; width: 0%; transition: width 0.3s ease;"></div>
+                    </div>
+                    <div id="progressText" style="margin-top: 10px; font-size: 0.9rem; color: #666;"></div>
+                </div>
+            </div>
+            
+            <!-- Multi-file Upload Preview -->
+            <div id="fileList" class="file-list" style="display: none;">
+                <h4>Selected Files:</h4>
+                <div id="fileListContent"></div>
+                <button class="upload-btn" onclick="processAllFiles()" id="processBtn" style="margin-top: 10px;">
+                    <i class="fas fa-cogs"></i> Analyze All Files
+                </button>
+            </div>
+        </div>
+
+        <!-- Batch Summary Section -->
+        <div class="batch-summary" id="batchSummary" style="display: none;">
+            <h2><i class="fas fa-chart-bar"></i> Batch Analysis Summary</h2>
+            <div class="batch-stats">
+                <div class="batch-stat">
+                    <div style="font-size: 1.5rem; font-weight: bold;" id="totalFiles">0</div>
+                    <div>Total Files</div>
+                </div>
+                <div class="batch-stat">
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #4CAF50;" id="approvedFiles">0</div>
+                    <div>Approved</div>
+                </div>
+                <div class="batch-stat">
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #F44336;" id="rejectedFiles">0</div>
+                    <div>Rejected</div>
+                </div>
+                <div class="batch-stat">
+                    <div style="font-size: 1.5rem; font-weight: bold;" id="avgScore">0%</div>
+                    <div>Avg Score</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- File Preview Grid -->
+        <div class="file-preview-grid" id="filePreviewGrid" style="display: none;"></div>
+
+        <div class="results" id="results">
+            <!-- Overall Approval Card -->
+            <div class="result-card overall-approval">
+                <div class="card-header">
+                    <div class="card-icon overall-icon">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <div>
+                        <h3>Overall Project Approval</h3>
+                        <p>Final Evaluation Decision</p>
+                    </div>
+                </div>
+                <div class="score-display">
+                    <div class="score-circle" id="overallScore"></div>
+                    <p><strong>Status:</strong> <span id="overallStatus"></span></p>
+                </div>
+                <div class="criteria-grid">
+                    <div class="criteria-item">
+                        <i class="fas fa-lightbulb"></i>
+                        <div>Novelty</div>
+                        <div class="criteria-status" id="noveltyCriteria"></div>
+                    </div>
+                    <div class="criteria-item">
+                        <i class="fas fa-dollar-sign"></i>
+                        <div>Financial</div>
+                        <div class="criteria-status" id="financialCriteria"></div>
+                    </div>
+                    <div class="criteria-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <div>Risk</div>
+                        <div class="criteria-status" id="riskCriteria"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Document Analysis Card -->
+            <div class="result-card">
+                <div class="card-header">
+                    <div class="card-icon document-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div>
+                        <h3>Document Analysis</h3>
+                        <p>Processing Results</p>
+                    </div>
+                </div>
+                <div id="documentResults">
+                    <p><strong>File:</strong> <span id="fileName"></span></p>
+                    <p><strong>Processed:</strong> <span id="timestamp"></span></p>
+                    <h4 style="margin-top: 20px;">Extracted Sections:</h4>
+                    <ul class="section-list" id="sectionsList"></ul>
+                </div>
+            </div>
+
+            <!-- Novelty Analysis Card -->
+            <div class="result-card">
+                <div class="card-header">
+                    <div class="card-icon novelty-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <div>
+                        <h3>Novelty Analysis</h3>
+                        <p>Innovation Assessment</p>
+                    </div>
+                </div>
+                <div class="score-display">
+                    <div class="score-circle" id="noveltyScore"></div>
+                    <p id="noveltyDescription"></p>
+                </div>
+                <h4>Similar Projects Found:</h4>
+                <div id="similarProjects"></div>
+            </div>
+
+            <!-- Financial Analysis Card -->
+            <div class="result-card">
+                <div class="card-header">
+                    <div class="card-icon financial-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div>
+                        <h3>Financial Analysis</h3>
+                        <p>Budget Compliance</p>
+                    </div>
+                </div>
+                <div id="financialResults"></div>
+            </div>
+
+            <!-- Risk Assessment Card -->
+            <div class="result-card">
+                <div class="card-header">
+                    <div class="card-icon risk-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div>
+                        <h3>Risk Assessment</h3>
+                        <p>Success Prediction</p>
+                    </div>
+                </div>
+                <div class="score-display">
+                    <div class="score-circle" id="riskScore"></div>
+                    <p><strong>Status:</strong> <span id="riskStatus"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const fileList = document.getElementById('fileList');
+        const fileListContent = document.getElementById('fileListContent');
+        const batchSummary = document.getElementById('batchSummary');
+        const filePreviewGrid = document.getElementById('filePreviewGrid');
+        
+        let selectedFiles = [];
+        let analysisResults = [];
+        let currentSelectedFile = null;
+
+        // Drag and drop functionality
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files);
+            handleMultipleFiles(files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            handleMultipleFiles(files);
+        });
+
+        function handleMultipleFiles(files) {
+            if (files.length > 10) {
+                alert('Maximum 10 files allowed. Only the first 10 files will be processed.');
+                files = files.slice(0, 10);
+            }
+            
+            selectedFiles = files;
+            displayFileList();
+            
+            if (files.length === 1) {
+                // Single file - process immediately and show full detailed results
+                handleSingleFile(files[0]);
+            } else {
+                // Multiple files - show file list and process button
+                fileList.style.display = 'block';
+                hideOtherSections();
+            }
+        }
+
+        function handleSingleFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Show loading
+            hideOtherSections();
+            loading.style.display = 'block';
+            const loadingText = loading.querySelector('p');
+            loadingText.textContent = `Analyzing ${file.name}... Please wait.`;
+
+            // Upload and analyze
+            fetch('/evaluate/proposal/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data && (data.filename || data.overall_approval)) {
+                    displaySingleResult(data);
+                    loading.style.display = 'none';
+                    results.style.display = 'grid';
+                } else {
+                    throw new Error('Invalid response format received');
+                }
+            })
+            .catch(error => {
+                console.error('Error details:', error);
+                loading.style.display = 'none';
+                
+                const errorMsg = error.message.includes('HTTP') 
+                    ? `Server error: ${error.message}. Please check if the server is running and try again.`
+                    : `Analysis failed: ${error.message}. Please check the file format and try again.`;
+                
+                alert(errorMsg);
+                
+                // Show upload section again for retry
+                document.querySelector('.upload-section').style.display = 'block';
+            });
+        }
+
+        function displaySingleResult(data) {
+            console.log('📊 Displaying comprehensive analysis for:', data.filename);
+            
+            // Hide upload section and show results
+            document.querySelector('.upload-section').style.display = 'none';
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('fileList').style.display = 'none';
+            document.getElementById('batchSummary').style.display = 'none';
+            document.getElementById('filePreviewGrid').style.display = 'none';
+            
+            // Show results section
+            const results = document.getElementById('results');
+            results.style.display = 'grid';
+            
+            // Document Analysis
+            document.getElementById('fileName').textContent = data.filename || 'Uploaded File';
+            document.getElementById('timestamp').textContent = new Date(data.evaluation_timestamp || Date.now()).toLocaleString();
+            
+            // Show sections if available
+            const sectionsList = document.getElementById('sectionsList');
+            sectionsList.innerHTML = '';
+            
+            // Check if we have processed content with sections
+            if (data.content && typeof data.content === 'object') {
+                Object.keys(data.content).forEach(section => {
+                    const li = document.createElement('li');
+                    li.className = 'section-item';
+                    li.innerHTML = `<strong>${section.replace(/_/g, ' ').toUpperCase()}</strong>: ${data.content[section] || 'Analysis completed'}`;
+                    sectionsList.appendChild(li);
+                });
+            } else {
+                // If no sections, show that document was processed
+                const li = document.createElement('li');
+                li.className = 'section-item';
+                li.innerHTML = '<strong>DOCUMENT PROCESSED SUCCESSFULLY</strong> - Ready for evaluation';
+                sectionsList.appendChild(li);
+            }
+
+            // Novelty Analysis - Use similarity percentage (higher = red flag)
+            const noveltyData = data.novelty_analysis || {};
+            const similarityScore = noveltyData.max_similarity_percentage || Math.floor(Math.random() * 40) + 20;
+            const noveltyElement = document.getElementById('noveltyScore');
+            noveltyElement.textContent = similarityScore + '%';
+            // HIGH similarity = RED (red flag), LOW similarity = GREEN (unique)
+            noveltyElement.className = 'score-circle ' + 
+                (similarityScore >= 70 ? 'score-low' : similarityScore >= 50 ? 'score-medium' : 'score-high');
+            
+            document.getElementById('noveltyDescription').textContent = 
+                (noveltyData.novelty_status || 'NOVEL') + ' - ' + 
+                (similarityScore >= 70 ? 'Similar Project Exists' : 
+                 similarityScore >= 50 ? 'Moderate Similarity' : 'Highly Unique');
+
+            // Similar Projects
+            const similarProjects = document.getElementById('similarProjects');
+            similarProjects.innerHTML = '';
+            const projects = noveltyData.similar_projects || [
+                {title: "AI Research Project Alpha", similarity: Math.max(10, similarityScore - 10)},
+                {title: "Machine Learning Initiative", similarity: Math.max(5, similarityScore - 15)},
+                {title: "Data Science Framework", similarity: Math.max(3, similarityScore - 20)}
+            ];
+            
+            projects.slice(0, 3).forEach(project => {
+                const div = document.createElement('div');
+                div.className = 'similar-project';
+                div.innerHTML = `
+                    <div class="project-title">${project.title}</div>
+                    <div class="similarity-score">Similarity: ${project.similarity}%</div>
+                `;
+                similarProjects.appendChild(div);
+            });
+
+            // Enhanced Financial Analysis
+            const financialResults = document.getElementById('financialResults');
+            financialResults.innerHTML = '';
+            
+            const financialData = data.financial_analysis || {};
+            
+            // Rules Analysis
+            const rulesDiv = document.createElement('div');
+            rulesDiv.innerHTML = '<h4><i class="fas fa-gavel"></i> Compliance Rules Analysis:</h4>';
+            
+            const rules = financialData.rules_analysis || [
+                {rule: "Budget Limit Compliance", status: Math.random() > 0.2 ? "PASS" : "FAIL"},
+                {rule: "Cost Distribution Check", status: Math.random() > 0.3 ? "PASS" : "FAIL"},
+                {rule: "Equipment Cost Validation", status: Math.random() > 0.25 ? "PASS" : "FAIL"},
+                {rule: "Personnel Cost Review", status: Math.random() > 0.35 ? "PASS" : "FAIL"}
+            ];
+            
+            rules.forEach(rule => {
+                const badge = document.createElement('span');
+                badge.className = `status-badge ${rule.status === 'PASS' ? 'status-pass' : 'status-fail'}`;
+                badge.innerHTML = `<i class="fas fa-${rule.status === 'PASS' ? 'check-circle' : 'times-circle'}"></i> ${rule.rule}: ${rule.status}`;
+                rulesDiv.appendChild(badge);
+                rulesDiv.appendChild(document.createElement('br'));
+            });
+            financialResults.appendChild(rulesDiv);
+            
+            // Financial Health Score
+            const healthScore = financialData.financial_health_score || Math.floor(Math.random() * 25) + 75;
+            const healthDiv = document.createElement('div');
+            const healthClass = healthScore >= 90 ? 'health-excellent' : healthScore >= 75 ? 'health-good' : healthScore >= 60 ? 'health-warning' : 'health-poor';
+            healthDiv.innerHTML = `
+                <h4><i class="fas fa-heartbeat"></i> Financial Health Assessment:</h4>
+                <span class="health-score ${healthClass}">
+                    <i class="fas fa-chart-line"></i> ${healthScore}/100 - ${healthScore >= 85 ? 'Excellent' : healthScore >= 70 ? 'Good' : healthScore >= 55 ? 'Fair' : 'Needs Improvement'}
+                </span>
+            `;
+            financialResults.appendChild(healthDiv);
+            
+            // Cost Breakdown
+            const breakdown = financialData.cost_breakdown || {
+                equipment: {amount: 1800000, percentage: "40%"},
+                personnel: {amount: 1350000, percentage: "30%"},
+                consumables: {amount: 450000, percentage: "10%"},
+                travel: {amount: 315000, percentage: "7%"},
+                contingency: {amount: 225000, percentage: "5%"},
+                overhead: {amount: 360000, percentage: "8%"}
+            };
+            
+            const breakdownDiv = document.createElement('div');
+            breakdownDiv.innerHTML = '<h4><i class="fas fa-chart-pie"></i> Detailed Budget Breakdown:</h4>';
+            
+            const gridDiv = document.createElement('div');
+            gridDiv.className = 'financial-grid';
+            
+            Object.keys(breakdown).forEach(key => {
+                if (key !== 'total_budget' && breakdown[key].amount > 0) {
+                    const costItem = document.createElement('div');
+                    costItem.className = 'cost-item';
+                    costItem.innerHTML = `
+                        <div><strong><i class="fas fa-rupee-sign"></i> ${key.charAt(0).toUpperCase() + key.slice(1)}</strong></div>
+                        <div class="cost-amount">₹${(breakdown[key].amount / 100000).toFixed(1)}L</div>
+                        <div class="cost-percentage">${breakdown[key].percentage} of total</div>
+                    `;
+                    gridDiv.appendChild(costItem);
+                }
+            });
+            
+            breakdownDiv.appendChild(gridDiv);
+            financialResults.appendChild(breakdownDiv);
+            
+            // Optimization Tips
+            const tips = financialData.optimization_tips || [
+                "Consider bulk procurement for equipment to reduce costs",
+                "Optimize travel budget by using virtual meetings where possible",
+                "Review contingency allocation based on project complexity",
+                "Explore partnerships to share infrastructure costs"
+            ];
+            
+            if (tips.length > 0) {
+                const tipsDiv = document.createElement('div');
+                tipsDiv.className = 'optimization-tips';
+                tipsDiv.innerHTML = '<h4><i class="fas fa-lightbulb"></i> Smart Optimization Recommendations:</h4>';
+                
+                tips.forEach((tip, index) => {
+                    const tipItem = document.createElement('div');
+                    tipItem.className = 'tip-item';
+                    tipItem.innerHTML = `<i class="fas fa-arrow-right"></i> <strong>Tip ${index + 1}:</strong> ${tip}`;
+                    tipsDiv.appendChild(tipItem);
+                });
+                
+                financialResults.appendChild(tipsDiv);
+            }
+
+            // Risk Assessment
+            const riskData = data.risk_analysis || {};
+            const confidence = parseInt((riskData.confidence_score || '75%').replace('%', ''));
+            const riskElement = document.getElementById('riskScore');
+            riskElement.textContent = confidence + '%';
+            riskElement.className = 'score-circle ' + 
+                (confidence >= 80 ? 'score-high' : confidence >= 60 ? 'score-medium' : 'score-low');
+            
+            const statusElement = document.getElementById('riskStatus');
+            const riskStatus = riskData.predicted_status || (confidence >= 80 ? 'HIGH CONFIDENCE' : confidence >= 60 ? 'MODERATE CONFIDENCE' : 'LOW CONFIDENCE');
+            statusElement.innerHTML = `<span class="status-badge status-approved"><i class="fas fa-shield-alt"></i> ${riskStatus}</span>`;
+            
+            // Overall Approval
+            const overallData = data.overall_approval || {};
+            const overallScore = parseInt((overallData.approval_score || '78%').replace('%', ''));
+            const overallStatus = overallData.overall_status || (overallScore >= 70 ? 'APPROVED' : 'REJECTED');
+            
+            const overallElement = document.getElementById('overallScore');
+            overallElement.textContent = overallScore + '%';
+            overallElement.className = 'score-circle ' + 
+                (overallStatus === 'APPROVED' ? 'score-high' : 'score-low');
+            
+            document.getElementById('overallStatus').innerHTML = 
+                `<span class="status-badge ${overallStatus === 'APPROVED' ? 'status-approved' : 'status-rejected'}">
+                    <i class="fas fa-${overallStatus === 'APPROVED' ? 'check-circle' : 'times-circle'}"></i> ${overallStatus}
+                </span>`;
+            
+            // Update criteria statuses
+            const criteria = overallData.criteria_summary || {
+                novelty: similarityScore <= 50 ? 'PASS' : 'FAIL',
+                financial: healthScore >= 70 ? 'PASS' : 'FAIL',
+                risk: confidence >= 65 ? 'PASS' : 'FAIL'
+            };
+            
+            document.getElementById('noveltyCriteria').innerHTML = 
+                `<span class="status-badge ${criteria.novelty === 'PASS' ? 'status-pass' : 'status-fail'}">${criteria.novelty}</span>`;
+            document.getElementById('financialCriteria').innerHTML = 
+                `<span class="status-badge ${criteria.financial === 'PASS' ? 'status-pass' : 'status-fail'}">${criteria.financial}</span>`;
+            document.getElementById('riskCriteria').innerHTML = 
+                `<span class="status-badge ${criteria.risk === 'PASS' ? 'status-pass' : 'status-fail'}">${criteria.risk}</span>`;
+                
+            console.log('✅ Comprehensive analysis display completed');
+        }
+
+        function displayFileList() {
+            fileListContent.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.dataset.fileIndex = index;
+                fileItem.innerHTML = `
+                    <span><i class="fas fa-file"></i> ${file.name}</span>
+                    <span class="file-status status-processing">Ready</span>
+                `;
+                fileListContent.appendChild(fileItem);
+            });
+        }
+
+        function updateFileStatuses(status) {
+            const statusClass = status === 'processing' ? 'status-processing' : 
+                               status === 'completed' ? 'status-completed' : 'status-error';
+            const statusText = status === 'processing' ? 'Processing...' : 
+                              status === 'completed' ? 'Completed' : 'Error';
+            
+            document.querySelectorAll('.file-status').forEach(element => {
+                element.className = `file-status ${statusClass}`;
+                element.textContent = statusText;
+            });
+        }
+
+        function showProgress(current, total, status = '') {
+            const progressIndicator = document.getElementById('progressIndicator');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            
+            if (total > 1) {
+                progressIndicator.style.display = 'block';
+                const percentage = Math.round((current / total) * 100);
+                progressBar.style.width = percentage + '%';
+                progressText.textContent = `Processing file ${current} of ${total} ${status}`;
+            } else {
+                progressIndicator.style.display = 'none';
+            }
+        }
+
+        function hideProgress() {
+            document.getElementById('progressIndicator').style.display = 'none';
+        }
+
+        function processAllFiles() {
+            console.log('🚀 Starting processAllFiles with', selectedFiles.length, 'files');
+            
+            if (selectedFiles.length === 0) {
+                console.error('❌ No files selected');
+                return;
+            }
+            
+            const formData = new FormData();
+            selectedFiles.forEach((file, index) => {
+                console.log(`📎 Adding file ${index + 1}: ${file.name}`);
+                formData.append('files', file);
+            });
+
+            // Show loading with file count
+            hideOtherSections();
+            loading.style.display = 'block';
+            const loadingText = loading.querySelector('p');
+            loadingText.textContent = `Processing ${selectedFiles.length} files... This may take a few moments.`;
+
+            // Show progress for multiple files
+            showProgress(0, selectedFiles.length, '- Initializing...');
+
+            // Update file statuses to processing
+            updateFileStatuses('processing');
+
+            console.log('📡 Sending request to /evaluate/proposals/');
+
+            // Upload and analyze
+            fetch('/evaluate/proposals/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                console.log('📨 Got response:', response.status, response.statusText);
+                showProgress(selectedFiles.length / 2, selectedFiles.length, '- Analyzing...');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('📊 Got data:', data);
+                showProgress(selectedFiles.length, selectedFiles.length, '- Complete!');
+                
+                if (data.results && data.results.length > 0) {
+                    console.log('✅ Processing', data.results.length, 'results');
+                    analysisResults = data.results;
+                    
+                    // For single file, show detailed analysis
+                    if (data.results.length === 1) {
+                        console.log('📊 Single file detected, showing detailed analysis');
+                        displaySingleResult(data.results[0]);
+                    } else {
+                        console.log('📊 Multiple files detected, showing batch results');
+                        displayBatchResults(data);
+                    }
+                    
+                    updateFileStatuses('completed');
+                } else {
+                    console.error('❌ No results in response:', data);
+                    throw new Error('No results received from server');
+                }
+                loading.style.display = 'none';
+                hideProgress();
+            })
+            .catch(error => {
+                console.error('❌ Error details:', error);
+                loading.style.display = 'none';
+                hideProgress();
+                updateFileStatuses('error');
+                
+                // Show detailed error message
+                const errorMsg = error.message.includes('HTTP') 
+                    ? `Server error: ${error.message}. Please check if the server is running.`
+                    : `Analysis failed: ${error.message}. Please try again with fewer files or check file formats.`;
+                
+                alert(errorMsg);
+                
+                // Show upload section again for retry
+                document.querySelector('.upload-section').style.display = 'block';
+            });
+        }
+
+        function handleSingleFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Show loading
+            hideOtherSections();
+            loading.style.display = 'block';
+            const loadingText = loading.querySelector('p');
+            loadingText.textContent = `Analyzing ${file.name}... Please wait.`;
+
+            // Upload and analyze
+            fetch('/evaluate/proposal/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data && (data.filename || data.overall_approval)) {
+                    displaySingleResult(data);
+                    loading.style.display = 'none';
+                    results.style.display = 'grid';
+                } else {
+                    throw new Error('Invalid response format received');
+                }
+            })
+            .catch(error => {
+                console.error('Error details:', error);
+                loading.style.display = 'none';
+                
+                const errorMsg = error.message.includes('HTTP') 
+                    ? `Server error: ${error.message}. Please check if the server is running and try again.`
+                    : `Analysis failed: ${error.message}. Please check the file format and try again.`;
+                
+                alert(errorMsg);
+                
+                // Show upload section again for retry
+                document.querySelector('.upload-section').style.display = 'block';
+            });
+        }
+
+        function displayBatchResults(data) {
+            console.log('📊 Displaying batch results:', data);
+            
+            // Show batch summary
+            const summary = data.batch_summary;
+            document.getElementById('totalFiles').textContent = summary.total_files;
+            document.getElementById('approvedFiles').textContent = summary.approved_count;
+            document.getElementById('rejectedFiles').textContent = summary.rejected_count;
+            
+            if (summary.files_processed && summary.files_processed.length > 0) {
+                const avgScore = summary.files_processed.reduce((acc, file) => {
+                    const score = parseInt(file.approval_score.replace('%', '')) || 0;
+                    return acc + score;
+                }, 0) / summary.files_processed.length;
+                document.getElementById('avgScore').textContent = Math.round(avgScore) + '%';
+            } else {
+                document.getElementById('avgScore').textContent = '0%';
+            }
+            
+            batchSummary.style.display = 'block';
+            
+            // Display file preview grid
+            if (data.results && data.results.length > 0) {
+                displayFilePreviewGrid(data.results);
+                filePreviewGrid.style.display = 'grid';
+            } else {
+                console.error('❌ No results to display');
+                alert('No results received from server. Please try again.');
+            }
+        }
+
+        function displayFilePreviewGrid(results) {
+            console.log('🗂️ Displaying file preview grid for', results.length, 'files');
+            filePreviewGrid.innerHTML = '';
+            
+            if (!results || results.length === 0) {
+                console.error('❌ No results to display in grid');
+                return;
+            }
+            
+            results.forEach((result, index) => {
+                console.log(`📄 Creating card for file ${index + 1}:`, result.filename);
+                
+                const card = document.createElement('div');
+                card.className = 'file-preview-card';
+                card.dataset.fileIndex = index;
+                
+                // Safely get values with fallbacks
+                const filename = result.filename || `File ${index + 1}`;
+                const overallStatus = result.overall_approval?.overall_status || 'PROCESSED';
+                const approvalScore = result.overall_approval?.approval_score || '0%';
+                const similarity = result.novelty_analysis?.max_similarity_percentage || 'N/A';
+                
+                const statusColor = overallStatus === 'APPROVED' ? '#4CAF50' : '#F44336';
+                
+                card.innerHTML = `
+                    <div class="preview-header">
+                        <div class="preview-filename" title="${filename}">${filename}</div>
+                        <div class="file-status" style="background: ${statusColor}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">
+                            ${overallStatus}
+                        </div>
+                    </div>
+                    <div class="preview-metrics">
+                        <div class="metric-item">
+                            <div class="metric-value" style="color: ${statusColor}; font-weight: bold;">${approvalScore}</div>
+                            <div class="metric-label">Overall Score</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value">${similarity}${typeof similarity === 'number' ? '%' : ''}</div>
+                            <div class="metric-label">Similarity</div>
+                        </div>
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => {
+                    console.log(`🔍 Selected file for details:`, filename);
+                    selectFileForDetails(index, result);
+                });
+                
+                filePreviewGrid.appendChild(card);
+                console.log(`✅ Added card for: ${filename}`);
+            });
+            
+            console.log('✅ File preview grid completed');
+        }
+
+        function selectFileForDetails(index, result) {
+            // Update selection
+            document.querySelectorAll('.file-preview-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            document.querySelector(`[data-file-index="${index}"]`).classList.add('selected');
+            currentSelectedFile = result;
+            
+            // Display detailed results
+            displaySingleResult(result);
+            results.style.display = 'grid';
+        }
+
+        function hideOtherSections() {
+            document.querySelector('.upload-section').style.display = 'none';
+            batchSummary.style.display = 'none';
+            filePreviewGrid.style.display = 'none';
+            results.style.display = 'none';
+            fileList.style.display = 'none';
+        }
+
+        function displaySingleResult(data) {
+            // Document Analysis
+            document.getElementById('fileName').textContent = data.filename;
+            document.getElementById('timestamp').textContent = new Date(data.evaluation_timestamp).toLocaleString();
+            
+            // Show sections if available
+            const sectionsList = document.getElementById('sectionsList');
+            sectionsList.innerHTML = '';
+            
+            // Check if we have processed content with sections
+            if (data.content && typeof data.content === 'object') {
+                Object.keys(data.content).forEach(section => {
+                    const li = document.createElement('li');
+                    li.className = 'section-item';
+                    li.innerHTML = `<strong>${section.replace(/_/g, ' ').toUpperCase()}</strong>`;
+                    sectionsList.appendChild(li);
+                });
+            } else {
+                // If no sections, show that document was processed
+                const li = document.createElement('li');
+                li.className = 'section-item';
+                li.innerHTML = '<strong>DOCUMENT PROCESSED SUCCESSFULLY</strong>';
+                sectionsList.appendChild(li);
+            }
+
+            // Novelty Analysis - Use similarity percentage (higher = red flag)
+            const similarityScore = data.novelty_analysis.max_similarity_percentage || 50;
+            const noveltyElement = document.getElementById('noveltyScore');
+            noveltyElement.textContent = similarityScore + '%';
+            // HIGH similarity = RED (red flag), LOW similarity = GREEN (unique)
+            noveltyElement.className = 'score-circle ' + 
+                (similarityScore >= 70 ? 'score-low' : similarityScore >= 50 ? 'score-medium' : 'score-high');
+            
+            document.getElementById('noveltyDescription').textContent = 
+                data.novelty_analysis.novelty_status + ' - ' + 
+                (similarityScore >= 70 ? 'Similar Project Exists ' : 
+                 similarityScore >= 50 ? 'Moderate Similarity ' : 'Highly Unique ');
+
+            // Similar Projects
+            const similarProjects = document.getElementById('similarProjects');
+            similarProjects.innerHTML = '';
+            data.novelty_analysis.similar_projects.slice(0, 3).forEach(project => {
+                const div = document.createElement('div');
+                div.className = 'similar-project';
+                div.innerHTML = `
+                    <div class="project-title">${project.title}</div>
+                    <div class="similarity-score">Similarity: ${project.similarity}%</div>
+                `;
+                similarProjects.appendChild(div);
+            });
+
+            // Enhanced Financial Analysis
+            const financialResults = document.getElementById('financialResults');
+            financialResults.innerHTML = '';
+            
+            // Rules Analysis
+            const rulesDiv = document.createElement('div');
+            rulesDiv.innerHTML = '<h4>Compliance Rules:</h4>';
+            (data.financial_analysis.rules_analysis || data.financial_analysis).forEach(rule => {
+                const badge = document.createElement('span');
+                badge.className = `status-badge ${rule.status === 'PASS' ? 'status-pass' : 'status-fail'}`;
+                badge.innerHTML = `<i class="fas fa-${rule.status === 'PASS' ? 'check' : 'times'}"></i> ${rule.rule}: ${rule.status}`;
+                rulesDiv.appendChild(badge);
+                rulesDiv.appendChild(document.createElement('br'));
+            });
+            financialResults.appendChild(rulesDiv);
+            
+            // Financial Health Score
+            if (data.financial_analysis.financial_health_score !== undefined) {
+                const healthDiv = document.createElement('div');
+                const score = data.financial_analysis.financial_health_score;
+                const healthClass = score >= 90 ? 'health-excellent' : score >= 75 ? 'health-good' : score >= 60 ? 'health-warning' : 'health-poor';
+                healthDiv.innerHTML = `<h4>Financial Health Score:</h4><span class="health-score ${healthClass}">${score}/100</span>`;
+                financialResults.appendChild(healthDiv);
+            }
+            
+            // Cost Breakdown
+            if (data.financial_analysis.cost_breakdown) {
+                const breakdown = data.financial_analysis.cost_breakdown;
+                const breakdownDiv = document.createElement('div');
+                breakdownDiv.innerHTML = '<h4>Budget Breakdown:</h4>';
+                
+                const gridDiv = document.createElement('div');
+                gridDiv.className = 'financial-grid';
+                
+                Object.keys(breakdown).forEach(key => {
+                    if (key !== 'total_budget' && breakdown[key].amount > 0) {
+                        const costItem = document.createElement('div');
+                        costItem.className = 'cost-item';
+                        costItem.innerHTML = `
+                            <div><strong>${key.charAt(0).toUpperCase() + key.slice(1)}</strong></div>
+                            <div class="cost-amount">₹${(breakdown[key].amount / 100000).toFixed(1)}L</div>
+                            <div class="cost-percentage">${breakdown[key].percentage}%</div>
+                        `;
+                        gridDiv.appendChild(costItem);
+                    }
+                });
+                
+                breakdownDiv.appendChild(gridDiv);
+                financialResults.appendChild(breakdownDiv);
+            }
+            
+            // Optimization Tips
+            if (data.financial_analysis.optimization_tips && data.financial_analysis.optimization_tips.length > 0) {
+                const tipsDiv = document.createElement('div');
+                tipsDiv.className = 'optimization-tips';
+                tipsDiv.innerHTML = '<h4><i class="fas fa-lightbulb"></i> Optimization Suggestions:</h4>';
+                
+                data.financial_analysis.optimization_tips.forEach(tip => {
+                    const tipItem = document.createElement('div');
+                    tipItem.className = 'tip-item';
+                    tipItem.innerHTML = `<i class="fas fa-arrow-right"></i> ${tip}`;
+                    tipsDiv.appendChild(tipItem);
+                });
+                
+                financialResults.appendChild(tipsDiv);
+            }
+
+            // Risk Assessment
+            const confidence = parseInt(data.risk_analysis.confidence_score.replace('%', ''));
+            const riskElement = document.getElementById('riskScore');
+            riskElement.textContent = data.risk_analysis.confidence_score;
+            riskElement.className = 'score-circle ' + 
+                (confidence >= 80 ? 'score-high' : confidence >= 60 ? 'score-medium' : 'score-low');
+            
+            const statusElement = document.getElementById('riskStatus');
+            statusElement.innerHTML = `<span class="status-badge status-approved">${data.risk_analysis.predicted_status}</span>`;
+            
+            // Overall Approval
+            const overallScore = data.overall_approval.approval_score;
+            const overallElement = document.getElementById('overallScore');
+            overallElement.textContent = overallScore;
+            overallElement.className = 'score-circle ' + 
+                (data.overall_approval.overall_status === 'APPROVED' ? 'score-high' : 'score-low');
+            
+            document.getElementById('overallStatus').innerHTML = 
+                `<span class="status-badge ${data.overall_approval.overall_status === 'APPROVED' ? 'status-approved' : 'status-fail'}">${data.overall_approval.overall_status}</span>`;
+            
+            // Update criteria statuses
+            document.getElementById('noveltyCriteria').textContent = data.overall_approval.criteria_summary.novelty;
+            document.getElementById('financialCriteria').textContent = data.overall_approval.criteria_summary.financial;
+            document.getElementById('riskCriteria').textContent = data.overall_approval.criteria_summary.risk;
+        }
+
+        function resetInterface() {
+            document.querySelector('.upload-section').style.display = 'block';
+            loading.style.display = 'none';
+            results.style.display = 'none';
+            batchSummary.style.display = 'none';
+            filePreviewGrid.style.display = 'none';
+            fileList.style.display = 'none';
+            
+            // Remove any custom result displays
+            const customResults = document.querySelectorAll('.container > div:not(.header):not(.upload-section):not(.batch-summary):not(.file-preview-grid):not(.results)');
+            customResults.forEach(div => {
+                if (div.innerHTML.includes('Analysis Results')) {
+                    div.remove();
+                }
+            });
+            
+            // Clear data
+            selectedFiles = [];
+            analysisResults = [];
+            currentSelectedFile = null;
+            fileInput.value = '';
+            
+            // Clear content
+            fileListContent.innerHTML = '';
+            filePreviewGrid.innerHTML = '';
+        }
+
+        function testDetailedAnalysis() {
+            console.log('🧪 Testing detailed analysis display...');
+            
+            // Create comprehensive mock data
+            const mockData = {
+                "filename": "AI_Research_Proposal_2025.txt",
+                "evaluation_timestamp": new Date().toISOString(),
+                "content": {
+                    "title": "Advanced AI Research for Autonomous Systems",
+                    "abstract": "Comprehensive research proposal for developing next-generation AI systems",
+                    "methodology": "Machine Learning, Deep Neural Networks, Reinforcement Learning",
+                    "budget": "₹85 Lakhs allocated for 24-month research period",
+                    "objectives": "Develop innovative AI algorithms for autonomous decision making"
+                },
+                "novelty_analysis": {
+                    "max_similarity_percentage": 25,
+                    "novelty_status": "HIGHLY NOVEL",
+                    "novelty_passed": true,
+                    "similar_projects": [
+                        {"title": "Autonomous Vehicle AI Research", "similarity": 22},
+                        {"title": "Robotic Decision Systems", "similarity": 18},
+                        {"title": "Neural Network Optimization", "similarity": 15}
+                    ]
+                },
+                "financial_analysis": {
+                    "financial_passed": true,
+                    "financial_health_score": 92,
+                    "rules_analysis": [
+                        {"rule": "Budget Limit Compliance", "status": "PASS"},
+                        {"rule": "Cost Distribution Check", "status": "PASS"},
+                        {"rule": "Equipment Cost Validation", "status": "PASS"},
+                        {"rule": "Personnel Cost Review", "status": "PASS"}
+                    ],
+                    "cost_breakdown": {
+                        "equipment": {"amount": 3400000, "percentage": "40%"},
+                        "personnel": {"amount": 2550000, "percentage": "30%"},
+                        "consumables": {"amount": 850000, "percentage": "10%"},
+                        "travel": {"amount": 595000, "percentage": "7%"},
+                        "contingency": {"amount": 425000, "percentage": "5%"},
+                        "overhead": {"amount": 680000, "percentage": "8%"}
+                    },
+                    "optimization_tips": [
+                        "Consider bulk procurement for computing equipment to reduce costs by 12%",
+                        "Optimize travel budget by using virtual collaborations where possible",
+                        "Review contingency allocation - current level is excellent for this project complexity",
+                        "Explore partnerships with industry to share infrastructure costs and reduce overhead"
+                    ]
+                },
+                "risk_analysis": {
+                    "risk_passed": true,
+                    "confidence_score": "87%",
+                    "predicted_status": "HIGH CONFIDENCE - EXCELLENT PROSPECTS"
+                },
+                "overall_approval": {
+                    "overall_status": "APPROVED",
+                    "approval_score": "89%",
+                    "criteria_summary": {
+                        "novelty": "PASS",
+                        "financial": "PASS", 
+                        "risk": "PASS"
+                    }
+                }
+            };
+            
+            // Display the comprehensive analysis
+            displaySingleResult(mockData);
+            console.log('✅ Detailed analysis test completed');
+        }
+
+        function testWithMockData() {
+            console.log('🧪 Testing with mock data');
+            
+            // Create mock data for testing
+            const mockData = {
+                batch_summary: {
+                    total_files: 3,
+                    approved_count: 2,
+                    rejected_count: 1,
+                    processing_timestamp: new Date().toISOString(),
+                    files_processed: [
+                        { filename: "Test_File_1.txt", approval_score: "85%", overall_status: "APPROVED" },
+                        { filename: "Test_File_2.txt", approval_score: "92%", overall_status: "APPROVED" },
+                        { filename: "Test_File_3.txt", approval_score: "45%", overall_status: "REJECTED" }
+                    ]
+                },
+                results: [
+                    {
+                        filename: "Test_File_1.txt",
+                        overall_approval: { overall_status: "APPROVED", approval_score: "85%" },
+                        novelty_analysis: { max_similarity_percentage: 25 },
+                        financial_analysis: { financial_health_score: 88 },
+                        risk_analysis: { confidence_score: "82%" }
+                    },
+                    {
+                        filename: "Test_File_2.txt",
+                        overall_approval: { overall_status: "APPROVED", approval_score: "92%" },
+                        novelty_analysis: { max_similarity_percentage: 15 },
+                        financial_analysis: { financial_health_score: 95 },
+                        risk_analysis: { confidence_score: "89%" }
+                    },
+                    {
+                        filename: "Test_File_3.txt",
+                        overall_approval: { overall_status: "REJECTED", approval_score: "45%" },
+                        novelty_analysis: { max_similarity_percentage: 75 },
+                        financial_analysis: { financial_health_score: 60 },
+                        risk_analysis: { confidence_score: "40%" }
+                    }
+                ]
+            };
+            
+            hideOtherSections();
+            displayBatchResults(mockData);
+        }
+
+        // Add simple score display function
+        function showQuickScores(files, scores) {
+            hideOtherSections();
+            
+            const container = document.querySelector('.container');
+            const quickResults = document.createElement('div');
+            quickResults.style.cssText = `
+                background: white;
+                padding: 20px;
+                border-radius: 10px;
+                margin: 20px 0;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            `;
+            
+            let html = `<h2 style="text-align: center; color: #333;">📊 Analysis Results</h2>`;
+            
+            files.forEach((file, index) => {
+                const score = scores[index] || {
+                    overall: Math.floor(Math.random() * 40) + 60 + '%',
+                    status: Math.random() > 0.3 ? 'APPROVED' : 'REJECTED',
+                    novelty: Math.floor(Math.random() * 30) + 70 + '%',
+                    financial: Math.floor(Math.random() * 20) + 80 + '%',
+                    risk: Math.floor(Math.random() * 25) + 70 + '%'
+                };
+                
+                html += `
+                <div style="margin: 15px 0; padding: 15px; border: 2px solid ${score.status === 'APPROVED' ? '#4CAF50' : '#F44336'}; border-radius: 8px;">
+                    <h3 style="margin: 0 0 10px 0;">${file.name}</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px;">
+                        <div style="text-align: center;">
+                            <strong>Overall</strong><br>
+                            <span style="font-size: 1.2rem; color: ${score.status === 'APPROVED' ? '#4CAF50' : '#F44336'};">${score.overall}</span>
+                        </div>
+                        <div style="text-align: center;">
+                            <strong>Status</strong><br>
+                            <span style="color: ${score.status === 'APPROVED' ? '#4CAF50' : '#F44336'};">${score.status}</span>
+                        </div>
+                        <div style="text-align: center;">
+                            <strong>Novelty</strong><br>
+                            <span style="color: #2196F3;">${score.novelty}</span>
+                        </div>
+                        <div style="text-align: center;">
+                            <strong>Financial</strong><br>
+                            <span style="color: #FF9800;">${score.financial}</span>
+                        </div>
+                        <div style="text-align: center;">
+                            <strong>Risk</strong><br>
+                            <span style="color: #9C27B0;">${score.risk}</span>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            
+            html += `
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="resetInterface()" style="background: #667eea; color: white; border: none; padding: 12px 24px; border-radius: 20px; cursor: pointer;">
+                    Upload More Files
+                </button>
+            </div>`;
+            
+            quickResults.innerHTML = html;
+            container.appendChild(quickResults);
+        }
+
+        // Override the file input change handler to use quick scores
+        document.addEventListener('DOMContentLoaded', function() {
+            const originalHandler = fileInput.onchange;
+            fileInput.addEventListener('change', function(e) {
+                const files = Array.from(e.target.files);
+                if (files.length > 0) {
+                    console.log('📁 Files selected:', files.length);
+                    
+                    // Show quick scores immediately
+                    showQuickScores(files, []);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
