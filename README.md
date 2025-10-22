@@ -371,14 +371,6 @@ CMD ["python3", "run_server.py"]
 **Smart India Hackathon 2025**  
 Problem Statement: #25180 - AI-Powered R&D Proposal Evaluation System
 
-### Team Members
-- [Add team member names]
-- [Add team member names]
-- [Add team member names]
-
-### Mentors
-- [Add mentor names]
-
 ---
 
 ## 📄 License
@@ -403,7 +395,6 @@ We welcome contributions! Please follow these steps:
 
 For issues, questions, or suggestions:
 - Create an issue in the repository
-- Contact Team Zenith 07
 
 ---
 
